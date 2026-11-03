@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  recipes   Recipe[]
+  likes     Like[]
+  bookmarks Bookmark[]
+  comments  Comment[]
+}
+
+model Recipe {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  ingredients String     // stored as JSON text, e.g. '["2 eggs","1 cup flour"]'
+  steps       String     // stored as JSON text
+  category    String
+  cookingTime Int        // minutes
+  imageUrl    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  authorId    Int
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       Like[]
+  bookmarks   Bookmark[]
+  comments    Comment[]
+}
+
+model Like {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  recipeId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+}
+
+model Bookmark {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  recipeId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+  userId    Int
+  recipeId  Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
